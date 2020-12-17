@@ -12,7 +12,7 @@
 
 
 
-
+`celldefine
 module vanilla_core_profiler
   import bsg_manycore_pkg::*;
   import bsg_vanilla_pkg::*;
@@ -1476,3 +1476,4 @@ module vanilla_core_profiler
    endfunction
 
 endmodule
+`endcelldefine
