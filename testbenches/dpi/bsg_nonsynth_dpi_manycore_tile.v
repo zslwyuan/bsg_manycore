@@ -1,11 +1,26 @@
-/**
- *    bsg_manycore_proc_vanilla.v
- *
- */
+// bsg_nonsynth_dpi_manycore_tile is a drop-in, non-synthesizable
+// socket for emulating a tile (or accelerator) using C/C++ functions.
+// 
+// bsg_nonsynth_dpi_manycore_tile can be instantiated using '9' in the
+// hetero_type_vec_p parameter at the top level of the simulation
+// testbenches, which is usually exposed in the
+// Makefile.machine.include file.
+// 
+// Users emulate a tile by writing two C/C++ functions:
+//
+//    bsg_dpi_tile_init(): a function that is called ONCE during
+//    initialization and takes four arguments (num_tiles_y_p,
+//    num_tiles_x_p, my_y_i, and my_x_i)
 
+//    bsg_dpi_tile(): a function that is called on each cycle, with
+//    and takes four packet interfaces as arguments (network_req,
+//    network_rsp, endpoint_req, endpoint_rsp)
+//    
+// This allows users to send and recieve packets. Higher-level
+// interfaces can be built in C/C++, and potentially, Python.
 
 module bsg_nonsynth_dpi_manycore_tile
-  import bsg_manycore_pkg::*;
+   import bsg_manycore_pkg::*;
    import bsg_vanilla_pkg::*;
    #(parameter x_cord_width_p = "inv"
      , parameter y_cord_width_p = "inv"
@@ -54,12 +69,10 @@ module bsg_nonsynth_dpi_manycore_tile
     , input [y_cord_width_p-1:0] my_y_i
     );
 
-   // TODO: How many elements? None?
    localparam ep_fifo_els_lp = 1;
    localparam fifo_width_lp = 128;
 
    // endpoint standard
-   //
    `declare_bsg_manycore_packet_s(addr_width_p,data_width_p,x_cord_width_p,y_cord_width_p);
 
    logic [credit_counter_width_lp-1:0] out_credits_lo;
@@ -142,10 +155,12 @@ module bsg_nonsynth_dpi_manycore_tile
    // Track tile initialization. Each tile should initialized
    // separately to give the tile the opportunity to initialize its own
    // datastructures or custom "configuration"
-   logic                               init_r = 0;      
+   logic                               init_r = 0;
    always_ff @(negedge clk_i) begin
       if(!init_r) begin
-         bsg_dpi_tile_init(my_y_i,
+         bsg_dpi_tile_init(num_tiles_y_p,
+                           num_tiles_x_p,
+                           my_y_i,
                            my_x_i);
          init_r <= 1;
       end
@@ -158,9 +173,9 @@ module bsg_nonsynth_dpi_manycore_tile
       next_endpoint_rsp_data_lo = '0;
       
       bsg_dpi_tile(
+                   reset_i,
                    my_y_i,
                    my_x_i,
-                   reset_i,
                    mc_req_v_li,
                    mc_req_data_li,
                    next_endpoint_rsp_v_lo,
@@ -173,26 +188,36 @@ module bsg_nonsynth_dpi_manycore_tile
                    endpoint_req_ready_li);      
    end
    
-   import "DPI" function void bsg_dpi_tile_init(input int num_tiles_y_p, input int num_tiles_x_p);
+   // Initialize the C/C++ manycore tile using parameters from
+   // simulation. Additional parameters (e.g. dmem_size_p) can be
+   // passed through this interface if necessary.
+   import "DPI" function void bsg_dpi_tile_init(input int num_tiles_y_p
+                                                ,input int num_tiles_x_p
+                                                ,input int my_y_i
+                                                ,input int my_x_i);
       
-      
-      import "DPI" function void bsg_dpi_tile(input int my_y_i,
-                                              input int                      my_x_i,
-                                              input bit                      reset_i,
+   // Emulate a single cycle of the C/C++ manycore tile, and present
+   // all of the network interfaces. Network requests (network_req_i)
+   // must be read when they are available (network_req_v_i == 1), and
+   // a response must be sent on the same cycle (this RTL module
+   // handles the timing). Network responses (network_rsp_o) must also
+   // be read when they are available (network_rsp_v_o == 1).
+   import "DPI" function void bsg_dpi_tile(input bit                       reset_i
+                                           ,input int                      my_y_i
+                                           ,input int                      my_x_i
 
-                                              input bit                      network_req_v_i,
-                                              input bit [fifo_width_lp-1:0] network_req_i,
+                                           ,input bit                      network_req_v_i
+                                           ,input bit [fifo_width_lp-1:0]  network_req_i
 
-                                              output bit                     endpoint_rsp_v_o,
-                                              output bit [fifo_width_lp-1:0] endpoint_rsp_o,
-                                              input bit                      endpoint_rsp_ready_i,
+                                           ,output bit                     endpoint_rsp_v_o
+                                           ,output bit [fifo_width_lp-1:0] endpoint_rsp_o
+                                           ,input bit                      endpoint_rsp_ready_i
 
-                                              input bit                      network_rsp_v_o,
-                                              input bit [fifo_width_lp-1:0]  network_rsp_o,
+                                           ,input bit                      network_rsp_v_i
+                                           ,input bit [fifo_width_lp-1:0]  network_rsp_i
 
-                                              output bit                     endpoint_req_v_o,
-                                              output bit [fifo_width_lp-1:0] endpoint_req_o,
-                                              input bit                      endpoint_req_ready_i
-                                              );
-
+                                           ,output bit                     endpoint_req_v_o
+                                           ,output bit [fifo_width_lp-1:0] endpoint_req_o
+                                           ,input bit                      endpoint_req_ready_i
+                                           );
 endmodule
