@@ -30,7 +30,7 @@
  *  bsg_manycore_endpoint_to_aligned_fifos.v
  *
  * Convert manycore packets into FIFO data streams, with fields aligned
- * to 8-bit/1-byte boundaries, or vice-versa.  
+ * to 8-bit/1-byte boundaries, or vice-versa.
  *
  */
 
@@ -124,7 +124,7 @@ module bsg_manycore_endpoint_to_fifos_aligned
 
   logic [data_width_p-1:0] returning_data_li;
   logic                    returning_v_li;
-   
+
   // manycore response to endpoint
   // -------------------------
   assign mc_rsp_v_o = returned_v_r_lo;
@@ -179,7 +179,7 @@ module bsg_manycore_endpoint_to_fifos_aligned
 
   // TODO: Not sure this is right. There is no returning_ready.
   assign endpoint_rsp_ready_o = '1;
-   
+
   bsg_manycore_endpoint_standard #(
     .x_cord_width_p(x_cord_width_p),
     .y_cord_width_p(y_cord_width_p),
@@ -187,7 +187,7 @@ module bsg_manycore_endpoint_to_fifos_aligned
     .addr_width_p(addr_width_p),
     .data_width_p(data_width_p),
     .max_out_credits_p(max_out_credits_p),
-    .debug_p(1)
+    .debug_p(0)
   ) epsd (
     .clk_i(clk_i),
     .reset_i(reset_i),

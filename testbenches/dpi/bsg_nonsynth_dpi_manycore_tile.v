@@ -1,11 +1,11 @@
 // bsg_nonsynth_dpi_manycore_tile is a drop-in, non-synthesizable
 // socket for emulating a tile (or accelerator) using C/C++ functions.
-// 
+//
 // bsg_nonsynth_dpi_manycore_tile can be instantiated using '9' in the
 // hetero_type_vec_p parameter at the top level of the simulation
 // testbenches, which is usually exposed in the
 // Makefile.machine.include file.
-// 
+//
 // Users emulate a tile by writing two C/C++ functions:
 //
 //    bsg_dpi_tile_init(): a function that is called ONCE during
@@ -15,7 +15,7 @@
 //    bsg_dpi_tile(): a function that is called on each cycle, with
 //    and takes four packet interfaces as arguments (network_req,
 //    network_rsp, endpoint_req, endpoint_rsp)
-//    
+//
 // This allows users to send and recieve packets. Higher-level
 // interfaces can be built in C/C++, and potentially, Python.
 
@@ -39,12 +39,12 @@ module bsg_nonsynth_dpi_manycore_tile
      , parameter num_tiles_y_p="inv"
 
      , parameter fwd_fifo_els_p="inv" // for FIFO credit counting.
-     
+
      , parameter max_out_credits_p = 32
      , parameter proc_fifo_els_p = 4
      , parameter debug_p = 1
 
-     
+
      , parameter branch_trace_en_p = 0
 
      , parameter credit_counter_width_lp=$clog2(max_out_credits_p+1)
@@ -61,10 +61,10 @@ module bsg_nonsynth_dpi_manycore_tile
    (
     input clk_i
     , input reset_i
-   
+
     , input [link_sif_width_lp-1:0] link_sif_i
     , output logic [link_sif_width_lp-1:0] link_sif_o
-   
+
     , input [x_cord_width_p-1:0] my_x_i
     , input [y_cord_width_p-1:0] my_y_i
     );
@@ -106,8 +106,8 @@ module bsg_nonsynth_dpi_manycore_tile
        .data_width_p(data_width_p),
        .ep_fifo_els_p(ep_fifo_els_lp),
        .max_out_credits_p(max_out_credits_p)
-       ) 
-   mc_ep_to_fifos 
+       )
+   mc_ep_to_fifos
      (
       .clk_i(clk_i),
       .reset_i(reset_i),
@@ -143,7 +143,7 @@ module bsg_nonsynth_dpi_manycore_tile
 
    logic                               next_endpoint_req_v_lo;
    logic [fifo_width_lp-1:0]           next_endpoint_req_data_lo;
-   
+
    logic                               next_endpoint_rsp_v_lo;
    logic [fifo_width_lp-1:0]           next_endpoint_rsp_data_lo;
 
@@ -160,6 +160,8 @@ module bsg_nonsynth_dpi_manycore_tile
       if(!init_r) begin
          bsg_dpi_tile_init(num_tiles_y_p,
                            num_tiles_x_p,
+                           icache_entries_p,
+                           dmem_size_p,
                            my_y_i,
                            my_x_i);
          init_r <= 1;
@@ -171,7 +173,7 @@ module bsg_nonsynth_dpi_manycore_tile
 
       next_endpoint_rsp_v_lo = 0;
       next_endpoint_rsp_data_lo = '0;
-      
+
       bsg_dpi_tile(
                    reset_i,
                    my_y_i,
@@ -181,21 +183,26 @@ module bsg_nonsynth_dpi_manycore_tile
                    next_endpoint_rsp_v_lo,
                    next_endpoint_rsp_data_lo,
                    endpoint_rsp_ready_li,
-                   mc_rsp_v_li, 
+                   mc_rsp_v_li,
                    mc_rsp_data_li,
                    endpoint_req_v_lo,
                    endpoint_req_data_lo,
-                   endpoint_req_ready_li);      
+                   endpoint_req_ready_li);
    end
-   
+
    // Initialize the C/C++ manycore tile using parameters from
-   // simulation. Additional parameters (e.g. dmem_size_p) can be
+   // simulation. Additional parameters can be
    // passed through this interface if necessary.
    import "DPI" function void bsg_dpi_tile_init(input int num_tiles_y_p
                                                 ,input int num_tiles_x_p
+                                                , input int icache_entries_p
+                                                , input int dmem_size_p
+
                                                 ,input int my_y_i
                                                 ,input int my_x_i);
-      
+
+   // TODO: Needs finish
+
    // Emulate a single cycle of the C/C++ manycore tile, and present
    // all of the network interfaces. Network requests (network_req_i)
    // must be read when they are available (network_req_v_i == 1), and
