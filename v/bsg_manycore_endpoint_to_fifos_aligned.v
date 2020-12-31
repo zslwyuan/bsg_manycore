@@ -94,7 +94,7 @@ module bsg_manycore_endpoint_to_fifos_aligned
 
   // manycore as master
   bsg_manycore_packet_aligned_s mc_req_lo_cast;
-  bsg_manycore_return_packet_aligned_s endpint_rsp_li_cast;
+  bsg_manycore_return_packet_aligned_s endpoint_rsp_li_cast;
   assign mc_req_o = mc_req_lo_cast;
   assign endpoint_rsp_li_cast = endpoint_rsp_i;
 
@@ -174,7 +174,7 @@ module bsg_manycore_endpoint_to_fifos_aligned
 
   // endpoint response to manycore
   // -------------------------
-  assign returning_data_li = endpoint_rsp_i[data_width_p-1:0];
+  assign returning_data_li = data_width_p'(endpoint_rsp_li_cast.data);
   assign returning_v_li = endpoint_rsp_v_i;
 
   // TODO: Not sure this is right. There is no returning_ready.

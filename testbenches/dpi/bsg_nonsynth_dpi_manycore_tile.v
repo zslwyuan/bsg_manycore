@@ -99,13 +99,13 @@ module bsg_nonsynth_dpi_manycore_tile
 
    bsg_manycore_endpoint_to_fifos_aligned
      #(
-       .fifo_width_p(fifo_width_lp),
-       .x_cord_width_p(x_cord_width_p),
-       .y_cord_width_p(y_cord_width_p),
-       .addr_width_p(addr_width_p),
-       .data_width_p(data_width_p),
-       .ep_fifo_els_p(ep_fifo_els_lp),
-       .max_out_credits_p(max_out_credits_p)
+       .fifo_width_p(fifo_width_lp)
+       ,.x_cord_width_p(x_cord_width_p)
+       ,.y_cord_width_p(y_cord_width_p)
+       ,.addr_width_p(addr_width_p)
+       ,.data_width_p(data_width_p)
+       ,.ep_fifo_els_p(ep_fifo_els_lp)
+       ,.max_out_credits_p(max_out_credits_p)
        )
    mc_ep_to_fifos
      (
@@ -147,6 +147,7 @@ module bsg_nonsynth_dpi_manycore_tile
    logic                               next_endpoint_rsp_v_lo;
    logic [fifo_width_lp-1:0]           next_endpoint_rsp_data_lo;
 
+
    always_ff @(posedge clk_i) begin
       endpoint_rsp_v_lo <= next_endpoint_rsp_v_lo;
       endpoint_rsp_data_lo <= next_endpoint_rsp_data_lo;
@@ -162,6 +163,7 @@ module bsg_nonsynth_dpi_manycore_tile
                            num_tiles_x_p,
                            icache_entries_p,
                            dmem_size_p,
+                           addr_width_p,
                            my_y_i,
                            my_x_i);
          init_r <= 1;
@@ -197,6 +199,7 @@ module bsg_nonsynth_dpi_manycore_tile
                                                 ,input int num_tiles_x_p
                                                 , input int icache_entries_p
                                                 , input int dmem_size_p
+                                                , input int addr_width_p
 
                                                 ,input int my_y_i
                                                 ,input int my_x_i);
