@@ -164,6 +164,7 @@ module bsg_nonsynth_dpi_manycore_tile
                            icache_entries_p,
                            dmem_size_p,
                            addr_width_p,
+                           max_out_credits_p,
                            my_y_i,
                            my_x_i);
          init_r <= 1;
@@ -200,6 +201,7 @@ module bsg_nonsynth_dpi_manycore_tile
                                                 , input int icache_entries_p
                                                 , input int dmem_size_p
                                                 , input int addr_width_p
+                                                , input int max_out_credits_p
 
                                                 ,input int my_y_i
                                                 ,input int my_x_i);
@@ -230,4 +232,13 @@ module bsg_nonsynth_dpi_manycore_tile
                                            ,output bit [fifo_width_lp-1:0] endpoint_req_o
                                            ,input bit                      endpoint_req_ready_i
                                            );
+
+   import "DPI" function void bsg_dpi_tile_finish(input int                      my_y_i
+                                                  ,input int                      my_x_i);
+
+
+   final begin
+      bsg_dpi_tile_finish(my_y_i, my_x_i);
+   end
+
 endmodule
