@@ -164,6 +164,12 @@ module bsg_nonsynth_dpi_manycore_tile
                            icache_entries_p,
                            dmem_size_p,
                            addr_width_p,
+                           data_width_p,
+
+                           vcache_sets_p,
+                           vcache_block_size_in_words_p,
+                           vcache_block_size_in_words_p, // Stripe size is block size
+                           
                            max_out_credits_p,
                            my_y_i,
                            my_x_i);
@@ -198,10 +204,16 @@ module bsg_nonsynth_dpi_manycore_tile
    // passed through this interface if necessary.
    import "DPI" function void bsg_dpi_tile_init(input int num_tiles_y_p
                                                 ,input int num_tiles_x_p
-                                                , input int icache_entries_p
-                                                , input int dmem_size_p
-                                                , input int addr_width_p
-                                                , input int max_out_credits_p
+                                                ,input int icache_entries_p
+                                                ,input int dmem_size_p
+                                                ,input int addr_width_p
+                                                ,input int data_width_p
+
+                                                ,input int max_out_credits_p
+
+                                                ,input int vcache_sets_p
+                                                ,input int vcache_block_words_p
+                                                ,input int vcache_stripe_words_p
 
                                                 ,input int my_y_i
                                                 ,input int my_x_i);
