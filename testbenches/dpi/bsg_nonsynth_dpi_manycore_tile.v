@@ -146,8 +146,7 @@ module bsg_nonsynth_dpi_manycore_tile
 
    logic                               next_endpoint_rsp_v_lo;
    logic [fifo_width_lp-1:0]           next_endpoint_rsp_data_lo;
-
-
+   
    always_ff @(posedge clk_i) begin
       endpoint_rsp_v_lo <= next_endpoint_rsp_v_lo;
       endpoint_rsp_data_lo <= next_endpoint_rsp_data_lo;
@@ -159,20 +158,22 @@ module bsg_nonsynth_dpi_manycore_tile
    logic                               init_r = 0;
    always_ff @(negedge clk_i) begin
       if(!init_r) begin
+
          bsg_dpi_tile_init(num_tiles_y_p,
                            num_tiles_x_p,
                            icache_entries_p,
-                           dmem_size_p,
+                           dmem_size_p * 4, // Despite what it says, dmem_size_p is actually entries, not bytes
                            addr_width_p,
                            data_width_p,
+
+                           max_out_credits_p,
 
                            vcache_sets_p,
                            vcache_block_size_in_words_p,
                            vcache_block_size_in_words_p, // Stripe size is block size
                            
-                           max_out_credits_p,
-                           my_y_i,
-                           my_x_i);
+                           my_x_i,
+                           my_y_i);
          init_r <= 1;
       end
 
@@ -185,8 +186,8 @@ module bsg_nonsynth_dpi_manycore_tile
 
       bsg_dpi_tile(
                    reset_i,
-                   my_y_i,
                    my_x_i,
+                   my_y_i,
                    mc_req_v_li,
                    mc_req_data_li,
                    next_endpoint_rsp_v_lo,
@@ -215,10 +216,8 @@ module bsg_nonsynth_dpi_manycore_tile
                                                 ,input int vcache_block_words_p
                                                 ,input int vcache_stripe_words_p
 
-                                                ,input int my_y_i
-                                                ,input int my_x_i);
-
-   // TODO: Needs finish
+                                                ,input int my_x_i
+                                                ,input int my_y_i);
 
    // Emulate a single cycle of the C/C++ manycore tile, and present
    // all of the network interfaces. Network requests (network_req_i)
@@ -227,8 +226,8 @@ module bsg_nonsynth_dpi_manycore_tile
    // handles the timing). Network responses (network_rsp_o) must also
    // be read when they are available (network_rsp_v_o == 1).
    import "DPI" function void bsg_dpi_tile(input bit                       reset_i
-                                           ,input int                      my_y_i
                                            ,input int                      my_x_i
+                                           ,input int                      my_y_i
 
                                            ,input bit                      network_req_v_i
                                            ,input bit [fifo_width_lp-1:0]  network_req_i
@@ -245,12 +244,12 @@ module bsg_nonsynth_dpi_manycore_tile
                                            ,input bit                      endpoint_req_ready_i
                                            );
 
-   import "DPI" function void bsg_dpi_tile_finish(input int                      my_y_i
-                                                  ,input int                      my_x_i);
+   import "DPI" function void bsg_dpi_tile_finish(input int                      my_x_i
+                                                  ,input int                      my_y_i);
 
 
    final begin
-      bsg_dpi_tile_finish(my_y_i, my_x_i);
+      bsg_dpi_tile_finish(my_x_i, my_y_i);
    end
 
 endmodule
